@@ -57,6 +57,8 @@ class Editor:
 class Mailler():
     """
     Mailler class
+    need to active this link
+    https://myaccount.google.com/u/1/lesssecureapps?pageId=none
     """
 
     def __init__(self, mail, password):
@@ -72,37 +74,41 @@ class Mailler():
         </html>"""
         self.sub = "Test : Certificate of Participation"
         
-        self.me = ""
-        self.password = ""
         self.server = ""
-        self.me = mail
+        self.my_mail_id = mail
         self.password = password
 
     def open(self):
         self.server = smtplib.SMTP('smtp.gmail.com:587')
         self.server.starttls()
-        self.server.login(self.me, self.password)
+        self.server.login(self.my_mail_id, self.password)
         
     def close(self):
         self.server.quit()
     
-    def send(self, to, sub, html, attach=0):
+    def send(self, to, attach=0):
         msg = MIMEMultipart()
-        body = MIMEText(html, 'html')
+        body = MIMEText(self.html, 'html')
         msg.attach(body)
         if(attach != 0):
             img_data = open(attach, 'rb').read()
             image = MIMEImage(img_data, name=os.path.basename(attach))
             msg.attach(image)
             
-        msg['Subject'] = sub
-        msg['From'] = self.me
+        msg['Subject'] = self.sub
+        msg['From'] = self.my_mail_id
         msg['To'] = to
-        self.server.sendmail(self.me, to, msg.as_string())
+        self.server.sendmail(self.my_mail_id, to, msg.as_string())
 
 
 if not os.path.exists('Generated'):
     os.makedirs('Generated')
+
+f = open('account.config', 'r')
+info = f.read()
+f.close()
+info = info.split()
+print(info)
 
 initTime = datetime.datetime.now()
 no = 0
@@ -117,18 +123,12 @@ for index, row in names.iterrows():
     certi.writeName(row['name'].upper())
     certi.save(row['mail'])
     
-    f = open('account.config', 'r')
-    info = f.read()
-    f.close()
-    info = info.split()
-    print(info)
-    continue
-    mailler = gmailMailler(info[0], info[1])
+    mailler = Mailler(info[0], info[1])
     mailler.open()
-    mailler.send("<mail-id>", sub, html, "Generated/"+names.loc[i]['mail'].lower()+".png")
+    mailler.send(row['mail'], "Generated/"+row['mail'].lower()+".png")
     mailler.close()
-    no = i
-    print("Mailled to \t" + names.loc[i]['name'].upper() +"\t\t"+ names.loc[i]['mail'].lower());
+    no+=1
+    print("Mailled to \t" + row['name'].upper() +"\t\t"+ row['mail'].lower());
     
 
 finalTime = datetime.datetime.now()
