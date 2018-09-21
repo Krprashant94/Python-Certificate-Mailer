@@ -125,7 +125,6 @@ for index, row in names.iterrows():
     continue
     mailler = gmailMailler(info[0], info[1])
     mailler.open()
-    # TODO: Change it to names.loc[i]['mail'].lower()
     mailler.send("<mail-id>", sub, html, "Generated/"+names.loc[i]['mail'].lower()+".png")
     mailler.close()
     no = i
