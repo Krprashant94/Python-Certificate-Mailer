@@ -11,56 +11,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 
-# Image Editing
-from PIL import Image
-from PIL import ImageFont
-from PIL import ImageDraw
+
 
 import pandas as pd
 import datetime
 import os
-
-class Editor:
-    """Editor class is for editing the certificate. It takes tamplate_file name to initilize the class"""
-    def __init__(self, tamplate_file):
-        """
-        initilize the class
-        tamplate_file (string): file name. file must be an png|jpg|bmp image. 
-        """
-        self.tamplate_file = tamplate_file
-        self.img = Image.open(tamplate_file)
-        self.width, self.height = self.img.size
-        self.draw = ImageDraw.Draw(self.img)
-        self.font = ImageFont.truetype('a.ttf', 150)
-        self.location = (0,0)
-    def setFont(self, font_name, size):
-        """
-        Set font style and font size of pen
-        font_name (string): font file name. must be an .ttf filename path.
-        size (int): size of the font.
-        """
-        self.font = ImageFont.truetype(font_name, size)
-    def setLocation(self, x, y):
-        """
-        Set cursor location where to write. Right alignment.
-        x (int): X-cordinate in image.
-        y (int): Y-cordinate in image.
-        """
-        self.location = (x, y)
-    def writeName(self, name, color=(0,0,0)):
-        """
-        Write the name of certificate
-        name (string): name/text to print in certificate.
-        color (r,g,b): color of the text.
-        """
-        self.draw.text(self.location, name, color,font=self.font)
-    def save(self, file_name):
-        """
-        Save the edited file in location "/Generated".
-        file_name (string): name of the file to saved
-        """
-        self.img.save('Generated/'+file_name+'.png')
-
 
 class Mailler():
     """
@@ -68,7 +23,7 @@ class Mailler():
     need to ON lesssecureapps in this link if using google mail ID: https://myaccount.google.com/u/1/lesssecureapps?pageId=none
     """
 
-    def __init__(self, mail, password):
+    def __init__(self, mail, password, name):
         """
         Initilize the mailler with mail id and password.
         mail(string): Your mail ID
@@ -78,12 +33,23 @@ class Mailler():
         <html>
           <head></head>
           <body>
-            <p>Hi!<br> 
-               Here is the <a href="https://www.python.org">link</a> you wanted.
+            <p style="font-size:16px;">Dear """+name+""",<br> 
+               <p style="font-size:16px;">You are getting this email because you are applied for "Six Petal Internship Program".  Please go through the <a href="https://docs.google.com/forms/d/e/1FAIpQLSe4ABFFz6h8EXTt6gKgOXcdao3Fp4MLbMbEylTxetjdjM5__Q/viewform">link for round one</a>. Please note that we have limited number of vacancy; we will select top scored person only with less time(Time calculation will start from now)  if you will qualify in this round. we will call you (via Skype or phone) for an interview cum selection round. Please note that appearing in round one means you are accepting our term and condition which was mentioned at the time of form fillup.</p>
+<p style="font-size:16px;"><br/>Important Note again:<br/></p>
+<ol>
+<li style="font-size:16px;">You will get a letter of recommendation for your work</li>
+<li style="font-size:16px;">Depending upon your CV we many shift your work to another location(only  in case of vacancy full)</li>
+<li style="font-size:16px;">This is an unpaid internship however you will get accommodation(or your pocket money)  if needed </li>
+</ol>
+
+			Link : https://docs.google.com/forms/d/e/1FAIpQLSe4ABFFz6h8EXTt6gKgOXcdao3Fp4MLbMbEylTxetjdjM5__Q/viewform
+<br/><br/><br/><br/><br/><br/>
+			Regards<br/>
+			Six Petal Developer Team
             </p>
           </body>
         </html>"""
-        self.sub = "Test : Certificate of Participation"
+        self.sub = "Six Petal Internship Program"
         
         self.server = ""
         self.my_mail_id = mail
@@ -129,9 +95,6 @@ class Mailler():
         msg['To'] = to
         self.server.sendmail(self.my_mail_id, to, msg.as_string())
 
-# Check if /Generated folder exist or not and then create.
-if not os.path.exists('Generated'):
-    os.makedirs('Generated')
 
 # get the account ID and password
 f = open('account.config', 'r')
@@ -143,24 +106,19 @@ initTime = datetime.datetime.now()
 # Counter
 no = 0
 # All mailling list
-names = pd.read_csv("mailling_list.csv")
+names = pd.read_csv("Internship Form.csv")
 
 for index, row in names.iterrows():
-    certi = Editor("certificate.png")
-    certi.setFont("a.ttf", 150)
-    certi.setLocation(certi.width/2 - 45*len(row['name']), 1300)
-    certi.writeName(row['name'].upper())
-    certi.save(row['mail'])
     
-    mailler = Mailler(info[0], info[1])
+    mailler = Mailler(info[0], info[1], row['name'])
     mailler.login()
-    mailler.send(row['mail'], "Generated/"+row['mail'].lower()+".png")
+    mailler.send(row['email'])
     mailler.logout()
     no+=1
-    print("Mailled to \t" + row['name'].upper() +"\t\t"+ row['mail'].lower());
+    print("Mailled to \t" + row['name'].upper() +"\t\t"+ row['email'].lower());
     
 
 finalTime = datetime.datetime.now()
 t = finalTime-initTime
-print(str(no+1)+" Certificate Generated and mailled in "+str(t)+ " Sec.")
+print(str(no)+" Mailled in "+str(t)+ " Sec.")
 
