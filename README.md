@@ -1,6 +1,6 @@
 # Python Certificate Mailer (c)
 Created on Tue Feb 20 19:52:40 2018
-@author: Prashant Kumar
+###### Author: Prashant Kumar
 
 ```
 certi = Editor("certificate.png")
